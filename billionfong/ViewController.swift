@@ -26,21 +26,29 @@ class ViewController: UIViewController, ARSCNViewDelegate
         let node_RM_X90Z90_X1 = scene_buttons.rootNode.childNode(withName: "RM_X90Z90_X1", recursively: false)!
         let node_R_Y90_Z1 = scene_buttons.rootNode.childNode(withName: "R_Y90_Z1", recursively: false)!
         
-        if (UIScreen.main.bounds.width > 375)
-        {
-            node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.02, -0.05)
-            node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.02, -0.05)
-            node_M_X90Z90_Y1.position = SCNVector3Make(0, -0.02, -0.05)
-            node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.02, -0.05)
-            node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.02, -0.05)
-        }
-        else
+        if (UIScreen.main.bounds.width == 375) //iPhone 7
         {
             node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.025, -0.05)
             node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.025, -0.05)
             node_M_X90Z90_Y1.position = SCNVector3Make(0, -0.025, -0.05)
             node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.025, -0.05)
             node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.025, -0.05)
+        }
+        else if (UIScreen.main.bounds.width == 414) // iPhone 11
+        {
+            node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.028, -0.051)
+            node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.028, -0.051)
+            node_M_X90Z90_Y1.position = SCNVector3Make(0, -0.028, -0.051)
+            node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.028, -0.051)
+            node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.028, -0.051)
+        }
+        else // iPad
+        {
+            node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.02, -0.05)
+            node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.02, -0.05)
+            node_M_X90Z90_Y1.position = SCNVector3Make(0, -0.02, -0.05)
+            node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.02, -0.05)
+            node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.02, -0.05)
         }
         sceneView.pointOfView?.addChildNode(node_L_Y90_Y1)
         sceneView.pointOfView?.addChildNode(node_LM_X90Z90_Z1)
@@ -66,12 +74,20 @@ class ViewController: UIViewController, ARSCNViewDelegate
         var h1 = CGFloat(1)
         var h2 = CGFloat(1)
         
-        // iPhone
+        // iPhone 7
         // 1.0  coins size
         // 5.8  width
         // 0.4  left right margin
         // 10.4 height
         // 8.9  from top
+        
+        // iPhone 11
+        // 1.21 coins size
+        // 6.5  width
+        // 0.2  left right margin
+        // 14   height
+        // 12.1 from top
+        
         
         // iPad
         // 2.1  coin size
@@ -80,19 +96,26 @@ class ViewController: UIViewController, ARSCNViewDelegate
         // 19.7 height
         // 16.5 from top
         
-        if (screenWidth > 375)
+        if (screenWidth == 375)
+        {
+            w1 = CGFloat(screenWidth / 5.8 * 0.4)
+            w2 = CGFloat(screenWidth / 5.8 * 1.0)
+            h1 = CGFloat(screenHeight / 10.4 * 8.9)
+            h2 = CGFloat(screenHeight / 10.4 * 1.0)
+        }
+        else if (screenWidth == 414)
+        {
+            w1 = CGFloat(screenWidth / 6.5 * 0.2)
+            w2 = CGFloat(screenWidth / 6.5 * 1.21)
+            h1 = CGFloat(screenHeight / 14 * 12.1)
+            h2 = CGFloat(screenHeight / 14 * 1.21)
+        }
+        else
         {
             w1 = CGFloat(screenWidth / 14.7 * 2.1)
             w2 = CGFloat(screenWidth / 14.7 * 2.1)
             h1 = CGFloat(screenHeight / 19.7 * 16.5)
             h2 = CGFloat(screenHeight / 19.7 * 2.1)
-        }
-        else
-        {
-            w1 = CGFloat(screenWidth / 5.8 * 0.4)
-            w2 = CGFloat(screenWidth / 5.8)
-            h1 = CGFloat(screenHeight / 10.4 * 8.9)
-            h2 = CGFloat(screenHeight / 10.4)
         }
         
         if ((w1+w2)>touchLocation.x && touchLocation.x>(w1) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
