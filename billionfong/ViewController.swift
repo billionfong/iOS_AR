@@ -9,8 +9,9 @@
 import UIKit
 import SceneKit
 import ARKit
+import ReplayKit
 
-class ViewController: UIViewController, ARSCNViewDelegate
+class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControllerDelegate
 {
     @IBOutlet var sceneView: ARSCNView!
     override func viewDidLoad()
@@ -210,7 +211,10 @@ class ViewController: UIViewController, ARSCNViewDelegate
         let button = UIButton(frame: CGRect(x: 182, y: 720, width: 50, height: 50))
         button.layer.cornerRadius = 25
         button.backgroundColor = .white
-        button.addTarget(self, action: #selector(screenshot), for: .touchUpInside)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
+        let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordButtonTapped))
+        button.addGestureRecognizer(tapGesture)
+        button.addGestureRecognizer(longGesture)
         self.view.addSubview(button)
     }
     
@@ -220,5 +224,22 @@ class ViewController: UIViewController, ARSCNViewDelegate
         let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         UIImageWriteToSavedPhotosAlbum(image!, nil, nil, nil)
+    }
+    
+    @IBAction func recordButtonTapped(sender: UILongPressGestureRecognizer) {
+        if (sender.state == UIGestureRecognizer.State.began) {
+            RPScreenRecorder.shared().startRecording{(error) in }
+        } else if (sender.state == UIGestureRecognizer.State.ended) {
+            RPScreenRecorder.shared().stopRecording { [unowned self] (preview, error) in
+                guard let preview = preview else { return }
+                preview.modalPresentationStyle = .automatic
+                preview.previewControllerDelegate = self
+                self.present(preview, animated: true, completion: nil)
+            }
+        }
+    }
+    
+    func previewControllerDidFinish(_ previewController: RPPreviewViewController) {
+        previewController.dismiss(animated: true, completion: nil)
     }
 }
