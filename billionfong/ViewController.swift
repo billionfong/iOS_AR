@@ -13,12 +13,58 @@ import ARKit
 class ViewController: UIViewController, ARSCNViewDelegate
 {
     @IBOutlet var sceneView: ARSCNView!
-    
     override func viewDidLoad()
     {
         super.viewDidLoad()
         sceneView.delegate = self
         
+        // Bottom 5 Buttons
+        for bottomButton in createBottomButtons() {
+            sceneView.pointOfView?.addChildNode(bottomButton)
+        }
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        sceneView.addGestureRecognizer(tap)
+        
+        // Camera Button
+        cameraButton()
+    }
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+        let configuration = ARImageTrackingConfiguration()
+        guard let trackedImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: Bundle.main) else { return }
+        configuration.trackingImages = trackedImages
+        configuration.maximumNumberOfTrackedImages = 1
+        sceneView.session.run(configuration)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool)
+    {
+        super.viewWillDisappear(animated)
+        sceneView.session.pause()
+    }
+    
+    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode?
+    {
+        let node = SCNNode()
+        if let imageAnchor = anchor as? ARImageAnchor
+        {
+            let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
+            plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
+            let node_plane = SCNNode(geometry: plane)
+            node_plane.eulerAngles.x = -.pi / 2
+            let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
+
+            let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
+            node_init.position = SCNVector3Make(0, 0, 0.005)
+            node_plane.addChildNode(node_init)
+            node.addChildNode(node_plane)
+        }
+        return node
+    }
+        
+    func createBottomButtons() -> [SCNNode] {
         let scene_buttons = SCNScene(named: "art.scnassets/buttons.scn")!
         let node_L_Y90_Y1 = scene_buttons.rootNode.childNode(withName: "L_Y90_Y1", recursively: false)!
         let node_LM_X90Z90_Z1 = scene_buttons.rootNode.childNode(withName: "LM_X90Z90_Z1", recursively: false)!
@@ -42,7 +88,7 @@ class ViewController: UIViewController, ARSCNViewDelegate
             node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.028, -0.051)
             node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.028, -0.051)
         }
-        else // iPad
+        else // iPad Air 2
         {
             node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.02, -0.05)
             node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.02, -0.05)
@@ -50,14 +96,9 @@ class ViewController: UIViewController, ARSCNViewDelegate
             node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.02, -0.05)
             node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.02, -0.05)
         }
-        sceneView.pointOfView?.addChildNode(node_L_Y90_Y1)
-        sceneView.pointOfView?.addChildNode(node_LM_X90Z90_Z1)
-        sceneView.pointOfView?.addChildNode(node_M_X90Z90_Y1)
-        sceneView.pointOfView?.addChildNode(node_RM_X90Z90_X1)
-        sceneView.pointOfView?.addChildNode(node_R_Y90_Z1)
         
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        sceneView.addGestureRecognizer(tap)
+        let buttons = [node_L_Y90_Y1, node_LM_X90Z90_Z1, node_M_X90Z90_Y1, node_RM_X90Z90_X1, node_R_Y90_Z1]
+        return buttons
     }
     
     @objc func handleTap(sender: UITapGestureRecognizer)
@@ -124,6 +165,7 @@ class ViewController: UIViewController, ARSCNViewDelegate
                 let node_new = scene_ARHead.rootNode.childNode(withName: "L_X270Z90_Z1", recursively: false)!
                 node_new.position = SCNVector3Make(0, 0.005, 0)
                 sceneView.node(for: anchor)?.replaceChildNode(node_old!, with: node_new)
+                UIImageWriteToSavedPhotosAlbum(sceneView.snapshot(), nil, nil, nil)
             }
         } else if ((w1+w2*2)>touchLocation.x && touchLocation.x>(w1+w2) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
             for anchor in (sceneView.session.currentFrame?.anchors)! {
@@ -156,38 +198,27 @@ class ViewController: UIViewController, ARSCNViewDelegate
         }
     }
     
-    override func viewWillAppear(_ animated: Bool)
-    {
-        super.viewWillAppear(animated)
-        let configuration = ARImageTrackingConfiguration()
-        guard let trackedImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: Bundle.main) else { return }
-        configuration.trackingImages = trackedImages
-        configuration.maximumNumberOfTrackedImages = 1
-        sceneView.session.run(configuration)
+    func cameraButton() {
+        let circlePath = UIBezierPath(arcCenter: CGPoint(x: 207, y: 745), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
+        let shapeLayer = CAShapeLayer()
+        shapeLayer.path = circlePath.cgPath
+        shapeLayer.fillColor = nil
+        shapeLayer.strokeColor = UIColor.white.cgColor
+        shapeLayer.lineWidth = 3.0
+        self.view.layer.addSublayer(shapeLayer)
+        
+        let button = UIButton(frame: CGRect(x: 182, y: 720, width: 50, height: 50))
+        button.layer.cornerRadius = 25
+        button.backgroundColor = .white
+        button.addTarget(self, action: #selector(screenshot), for: .touchUpInside)
+        self.view.addSubview(button)
     }
     
-    override func viewWillDisappear(_ animated: Bool)
-    {
-        super.viewWillDisappear(animated)
-        sceneView.session.pause()
-    }
-    
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode?
-    {
-        let node = SCNNode()
-        if let imageAnchor = anchor as? ARImageAnchor
-        {
-            let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
-            plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
-            let node_plane = SCNNode(geometry: plane)
-            node_plane.eulerAngles.x = -.pi / 2
-            let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
-
-            let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
-            node_init.position = SCNVector3Make(0, 0, 0.005)
-            node_plane.addChildNode(node_init)
-            node.addChildNode(node_plane)
-        }
-        return node
+    @IBAction func screenshot(_ sender: Any) {
+        UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, false, UIScreen.main.scale)
+        self.view.drawHierarchy(in: self.view.bounds, afterScreenUpdates: true)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        UIImageWriteToSavedPhotosAlbum(image!, nil, nil, nil)
     }
 }
