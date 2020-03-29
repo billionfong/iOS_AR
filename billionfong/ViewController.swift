@@ -211,6 +211,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let button = UIButton(frame: CGRect(x: 182, y: 720, width: 50, height: 50))
         button.layer.cornerRadius = 25
         button.backgroundColor = .white
+        button.tag = 123321
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
         let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordButtonTapped))
         button.addGestureRecognizer(tapGesture)
@@ -225,10 +226,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         UIGraphicsEndImageContext()
         UIImageWriteToSavedPhotosAlbum(image!, nil, nil, nil)
     }
-    
+        
     @IBAction func recordButtonTapped(sender: UILongPressGestureRecognizer) {
         if (sender.state == UIGestureRecognizer.State.began) {
             RPScreenRecorder.shared().startRecording{(error) in }
+            self.view.viewWithTag(123321)?.backgroundColor = .red
         } else if (sender.state == UIGestureRecognizer.State.ended) {
             RPScreenRecorder.shared().stopRecording { [unowned self] (preview, error) in
                 guard let preview = preview else { return }
@@ -236,6 +238,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
                 preview.previewControllerDelegate = self
                 self.present(preview, animated: true, completion: nil)
             }
+            self.view.viewWithTag(123321)?.backgroundColor = .white
         }
     }
     
