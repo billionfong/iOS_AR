@@ -11,9 +11,13 @@ import SceneKit
 import ARKit
 import ReplayKit
 
-class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControllerDelegate
+class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControllerDelegate, UIGestureRecognizerDelegate
 {
     @IBOutlet var sceneView: ARSCNView!
+    
+    
+    
+    // Basic Functions
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -24,6 +28,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
             sceneView.pointOfView?.addChildNode(bottomButton)
         }
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        tap.delegate = self
         sceneView.addGestureRecognizer(tap)
         
         // Camera Button
@@ -46,25 +51,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         sceneView.session.pause()
     }
     
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode?
-    {
-        let node = SCNNode()
-        if let imageAnchor = anchor as? ARImageAnchor
-        {
-            let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
-            plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
-            let node_plane = SCNNode(geometry: plane)
-            node_plane.eulerAngles.x = -.pi / 2
-            let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
-
-            let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
-            node_init.position = SCNVector3Make(0, 0, 0.005)
-            node_plane.addChildNode(node_init)
-            node.addChildNode(node_plane)
-        }
-        return node
-    }
-        
+    
+    
+    // AR Functions
     func createBottomButtons() -> [SCNNode] {
         let scene_buttons = SCNScene(named: "art.scnassets/buttons.scn")!
         let node_L_Y90_Y1 = scene_buttons.rootNode.childNode(withName: "L_Y90_Y1", recursively: false)!
@@ -94,7 +83,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         return buttons
     }
         
-    @objc func handleTap(sender: UITapGestureRecognizer)
+    @IBAction func handleTap(sender: UITapGestureRecognizer)
     {
         let touchLocation: CGPoint = sender.location(in: sender.view)
 
@@ -145,6 +134,28 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         }
     }
     
+    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode?
+    {
+        let node = SCNNode()
+        if let imageAnchor = anchor as? ARImageAnchor
+        {
+            let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
+            plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
+            let node_plane = SCNNode(geometry: plane)
+            node_plane.eulerAngles.x = -.pi / 2
+            let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
+
+            let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
+            node_init.position = SCNVector3Make(0, 0, 0.005)
+            node_plane.addChildNode(node_init)
+            node.addChildNode(node_plane)
+        }
+        return node
+    }
+    
+    
+    
+    // Camera Button
     func cameraButton() {
         let circlePath = UIBezierPath(arcCenter: CGPoint(x: 207, y: 745), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
         let shapeLayer = CAShapeLayer()
@@ -159,7 +170,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         button.backgroundColor = .white
         button.tag = 123321
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
+        tapGesture.delegate = self
         let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordButtonTapped))
+        longGesture.delegate = self
         button.addGestureRecognizer(tapGesture)
         button.addGestureRecognizer(longGesture)
         self.view.addSubview(button)
@@ -190,5 +203,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     
     func previewControllerDidFinish(_ previewController: RPPreviewViewController) {
         previewController.dismiss(animated: true, completion: nil)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    return true
     }
 }
