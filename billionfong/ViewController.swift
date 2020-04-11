@@ -73,15 +73,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let node_RM_X90Z90_X1 = scene_buttons.rootNode.childNode(withName: "RM_X90Z90_X1", recursively: false)!
         let node_R_Y90_Z1 = scene_buttons.rootNode.childNode(withName: "R_Y90_Z1", recursively: false)!
         
-        if (UIScreen.main.bounds.width == 375) //iPhone 7
-        {
-            node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.025, -0.05)
-            node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.025, -0.05)
-            node_M_X90Z90_Y1.position = SCNVector3Make(0, -0.025, -0.05)
-            node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.025, -0.05)
-            node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.025, -0.05)
-        }
-        else if (UIScreen.main.bounds.width == 414) // iPhone 11
+        if (UIDevice().model == "iPhone") // iPhone 11
         {
             node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.028, -0.051)
             node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.028, -0.051)
@@ -89,7 +81,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
             node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.028, -0.051)
             node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.028, -0.051)
         }
-        else // iPad Air 2
+        else if (UIDevice().model == "iPad") // iPad Air 2
         {
             node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.02, -0.05)
             node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.02, -0.05)
@@ -101,13 +93,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let buttons = [node_L_Y90_Y1, node_LM_X90Z90_Z1, node_M_X90Z90_Y1, node_RM_X90Z90_X1, node_R_Y90_Z1]
         return buttons
     }
-    
+        
     @objc func handleTap(sender: UITapGestureRecognizer)
     {
         let touchLocation: CGPoint = sender.location(in: sender.view)
-        let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
-        
-        
+
         let screenBounds = UIScreen.main.bounds
         let screenWidth = screenBounds.width
         let screenHeight = screenBounds.height
@@ -115,44 +105,15 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         var w2 = CGFloat(1)
         var h1 = CGFloat(1)
         var h2 = CGFloat(1)
-        
-        // iPhone 7
-        // 1.0  coins size
-        // 5.8  width
-        // 0.4  left right margin
-        // 10.4 height
-        // 8.9  from top
-        
-        // iPhone 11
-        // 1.21 coins size
-        // 6.5  width
-        // 0.2  left right margin
-        // 14   height
-        // 12.1 from top
-        
-        
-        // iPad
-        // 2.1  coin size
-        // 14.7 width
-        // 2.1  left right margin
-        // 19.7 height
-        // 16.5 from top
-        
-        if (screenWidth == 375)
-        {
-            w1 = CGFloat(screenWidth / 5.8 * 0.4)
-            w2 = CGFloat(screenWidth / 5.8 * 1.0)
-            h1 = CGFloat(screenHeight / 10.4 * 8.9)
-            h2 = CGFloat(screenHeight / 10.4 * 1.0)
-        }
-        else if (screenWidth == 414)
+                
+        if (UIDevice().model == "iPhone") // iPhone 11
         {
             w1 = CGFloat(screenWidth / 6.5 * 0.2)
             w2 = CGFloat(screenWidth / 6.5 * 1.21)
             h1 = CGFloat(screenHeight / 14 * 12.1)
             h2 = CGFloat(screenHeight / 14 * 1.21)
         }
-        else
+        else if (UIDevice().model == "iPad") // iPad Air 2
         {
             w1 = CGFloat(screenWidth / 14.7 * 2.1)
             w2 = CGFloat(screenWidth / 14.7 * 2.1)
@@ -161,41 +122,26 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         }
         
         if ((w1+w2)>touchLocation.x && touchLocation.x>(w1) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
-            for anchor in (sceneView.session.currentFrame?.anchors)! {
-                let node_old = sceneView.node(for: anchor)?.childNodes.first
-                let node_new = scene_ARHead.rootNode.childNode(withName: "L_X270Z90_Z1", recursively: false)!
-                node_new.position = SCNVector3Make(0, 0.005, 0)
-                sceneView.node(for: anchor)?.replaceChildNode(node_old!, with: node_new)
-                UIImageWriteToSavedPhotosAlbum(sceneView.snapshot(), nil, nil, nil)
-            }
+            replaceAR(nodeNew: "L_X270Z90_Z1")
         } else if ((w1+w2*2)>touchLocation.x && touchLocation.x>(w1+w2) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
-            for anchor in (sceneView.session.currentFrame?.anchors)! {
-                let node_old = sceneView.node(for: anchor)?.childNodes.first
-                let node_new = scene_ARHead.rootNode.childNode(withName: "LM_Y90_Y1", recursively: false)!
-                node_new.position = SCNVector3Make(0, 0.005, 0)
-                sceneView.node(for: anchor)?.replaceChildNode(node_old!, with: node_new)
-            }
+            replaceAR(nodeNew: "LM_Y90_Y1")
         } else if ((w1+w2*3)>touchLocation.x && touchLocation.x>(w1+w2*2) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
-            for anchor in (sceneView.session.currentFrame?.anchors)! {
-                let node_old = sceneView.node(for: anchor)?.childNodes.first
-                let node_new = scene_ARHead.rootNode.childNode(withName: "M_Y90_Z1", recursively: false)!
-                node_new.position = SCNVector3Make(0, 0.005, 0)
-                sceneView.node(for: anchor)?.replaceChildNode(node_old!, with: node_new)
-            }
+            replaceAR(nodeNew: "M_Y90_Z1")
         } else if ((w1+w2*4)>touchLocation.x && touchLocation.x>(w1+w2*3) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
-            for anchor in (sceneView.session.currentFrame?.anchors)! {
-                let node_old = sceneView.node(for: anchor)?.childNodes.first
-                let node_new = scene_ARHead.rootNode.childNode(withName: "RM_Y90_X1", recursively: false)!
-                node_new.position = SCNVector3Make(0, 0.005, 0)
-                sceneView.node(for: anchor)?.replaceChildNode(node_old!, with: node_new)
-            }
+            replaceAR(nodeNew: "RM_Y90_X1")
         } else if ((w1+w2*5)>touchLocation.x && touchLocation.x>(w1+w2*4) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
-            for anchor in (sceneView.session.currentFrame?.anchors)! {
-                let node_old = sceneView.node(for: anchor)?.childNodes.first
-                let node_new = scene_ARHead.rootNode.childNode(withName: "R_Z90_Y1", recursively: false)!
-                node_new.position = SCNVector3Make(0, 0.005, 0)
-                sceneView.node(for: anchor)?.replaceChildNode(node_old!, with: node_new)
-            }
+            replaceAR(nodeNew: "R_Z90_Y1")
+        }
+    }
+    
+    @objc func replaceAR(nodeNew: String){
+        let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
+        for anchor in (sceneView.session.currentFrame?.anchors)! {
+            let node_old = sceneView.node(for: anchor)?.childNodes.first
+            let node_new = scene_ARHead.rootNode.childNode(withName: nodeNew, recursively: false)!
+            node_new.position = SCNVector3Make(0, 0.005, 0)
+            sceneView.node(for: anchor)?.replaceChildNode(node_old!, with: node_new)
+            UIImageWriteToSavedPhotosAlbum(sceneView.snapshot(), nil, nil, nil)
         }
     }
     
