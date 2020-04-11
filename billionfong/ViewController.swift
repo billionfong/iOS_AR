@@ -1,6 +1,7 @@
 //
 //  ViewController.swift
 //  billionfong
+//  Device: iPhone 11, iPad Air 2
 //
 //  Created by Billionfong on 2/8/2018.
 //  Copyright © 2018 Billionfong. All rights reserved.
@@ -62,22 +63,28 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let node_RM_X90Z90_X1 = scene_buttons.rootNode.childNode(withName: "RM_X90Z90_X1", recursively: false)!
         let node_R_Y90_Z1 = scene_buttons.rootNode.childNode(withName: "R_Y90_Z1", recursively: false)!
         
-        if (UIDevice().model == "iPhone") // iPhone 11
+        var x = Float(1)
+        var y = Float(1)
+        var z = Float(1)
+        
+        if (UIDevice().model == "iPhone")
         {
-            node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.028, -0.051)
-            node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.028, -0.051)
-            node_M_X90Z90_Y1.position = SCNVector3Make(0, -0.028, -0.051)
-            node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.028, -0.051)
-            node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.028, -0.051)
+            x = 0.006
+            y = -0.028
+            z = -0.05
         }
-        else if (UIDevice().model == "iPad") // iPad Air 2
+        else if (UIDevice().model == "iPad")
         {
-            node_L_Y90_Y1.position = SCNVector3Make(-0.012, -0.02, -0.05)
-            node_LM_X90Z90_Z1.position = SCNVector3Make(-0.006, -0.02, -0.05)
-            node_M_X90Z90_Y1.position = SCNVector3Make(0, -0.02, -0.05)
-            node_RM_X90Z90_X1.position = SCNVector3Make(0.006, -0.02, -0.05)
-            node_R_Y90_Z1.position = SCNVector3Make(0.012, -0.02, -0.05)
+            x = -0.007
+            y = -0.023
+            z = -0.05
         }
+        
+        node_L_Y90_Y1.position = SCNVector3Make(-2*x, y, z)
+        node_LM_X90Z90_Z1.position = SCNVector3Make(-1*x, y, z)
+        node_M_X90Z90_Y1.position = SCNVector3Make(0, y, z)
+        node_RM_X90Z90_X1.position = SCNVector3Make(x, y, z)
+        node_R_Y90_Z1.position = SCNVector3Make(2*x, y, z)
         
         let buttons = [node_L_Y90_Y1, node_LM_X90Z90_Z1, node_M_X90Z90_Y1, node_RM_X90Z90_X1, node_R_Y90_Z1]
         return buttons
@@ -95,19 +102,19 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         var h1 = CGFloat(1)
         var h2 = CGFloat(1)
                 
-        if (UIDevice().model == "iPhone") // iPhone 11
+        if (UIDevice().model == "iPhone")
         {
             w1 = CGFloat(screenWidth / 6.5 * 0.2)
             w2 = CGFloat(screenWidth / 6.5 * 1.21)
             h1 = CGFloat(screenHeight / 14 * 12.1)
             h2 = CGFloat(screenHeight / 14 * 1.21)
         }
-        else if (UIDevice().model == "iPad") // iPad Air 2
+        else if (UIDevice().model == "iPad")
         {
-            w1 = CGFloat(screenWidth / 14.7 * 2.1)
-            w2 = CGFloat(screenWidth / 14.7 * 2.1)
-            h1 = CGFloat(screenHeight / 19.7 * 16.5)
-            h2 = CGFloat(screenHeight / 19.7 * 2.1)
+            w1 = CGFloat(screenWidth / 14.7 * 0.85)
+            w2 = CGFloat(screenWidth / 14.7 * 2.6)
+            h1 = CGFloat(screenHeight / 19.7 * 17.3)
+            h2 = CGFloat(screenHeight / 19.7 * 2.2)
         }
         
         if ((w1+w2)>touchLocation.x && touchLocation.x>(w1) && (h1+h2)>touchLocation.y && touchLocation.y>(h1)) {
@@ -157,24 +164,42 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     
     // Camera Button
     func cameraButton() {
-        let circlePath = UIBezierPath(arcCenter: CGPoint(x: 207, y: 745), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
+        var circlePath = UIBezierPath()
+        if (UIDevice().model == "iPhone") {
+            circlePath = UIBezierPath(arcCenter: CGPoint(x: 207, y: 745), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
+        }
+        else if (UIDevice().model == "iPad") {
+            circlePath = UIBezierPath(arcCenter: CGPoint(x: 384, y: 855), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
+        }
         let shapeLayer = CAShapeLayer()
         shapeLayer.path = circlePath.cgPath
         shapeLayer.fillColor = nil
         shapeLayer.strokeColor = UIColor.white.cgColor
         shapeLayer.lineWidth = 3.0
-        self.view.layer.addSublayer(shapeLayer)
         
-        let button = UIButton(frame: CGRect(x: 182, y: 720, width: 50, height: 50))
+        
+        var button = UIButton()
+        if (UIDevice().model == "iPhone") {
+            button = UIButton(frame: CGRect(x: 182, y: 720, width: 50, height: 50))
+        }
+        else if (UIDevice().model == "iPad") {
+            button = UIButton(frame: CGRect(x: 359, y: 830, width: 50, height: 50))
+        }
         button.layer.cornerRadius = 25
         button.backgroundColor = .white
         button.tag = 123321
+        
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
         tapGesture.delegate = self
+        button.addGestureRecognizer(tapGesture)
+        
         let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordButtonTapped))
         longGesture.delegate = self
-        button.addGestureRecognizer(tapGesture)
         button.addGestureRecognizer(longGesture)
+        
+        
+        self.view.layer.addSublayer(shapeLayer)
         self.view.addSubview(button)
     }
     
