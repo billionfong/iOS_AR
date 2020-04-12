@@ -12,18 +12,33 @@ import SceneKit
 import ARKit
 import ReplayKit
 
-class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControllerDelegate, UIGestureRecognizerDelegate
-{
+class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControllerDelegate, UIGestureRecognizerDelegate {
+    
     @IBOutlet var sceneView: ARSCNView!
     
     
     
     // Basic Functions
-    override func viewDidLoad()
-    {
+    override func viewDidLoad() {
         super.viewDidLoad()
+        backCameraInit()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        backCameraConfiguration()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        sceneView.session.pause()
+    }
+    
+    
+    
+    // Back Camera
+    func backCameraInit() {
         sceneView.delegate = self
-        
         // Bottom 5 Buttons
         for bottomButton in createBottomButtons() {
             sceneView.pointOfView?.addChildNode(bottomButton)
@@ -32,24 +47,29 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         tap.delegate = self
         sceneView.addGestureRecognizer(tap)
         
-        // Camera Button
-        cameraButton()
+        // Control Button
+        controlButton()
     }
     
-    override func viewWillAppear(_ animated: Bool)
-    {
-        super.viewWillAppear(animated)
+    func backCameraConfiguration() {
         let configuration = ARImageTrackingConfiguration()
         guard let trackedImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: Bundle.main) else { return }
         configuration.trackingImages = trackedImages
         configuration.maximumNumberOfTrackedImages = 1
-        sceneView.session.run(configuration)
+        
+        sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
     }
     
-    override func viewWillDisappear(_ animated: Bool)
-    {
-        super.viewWillDisappear(animated)
-        sceneView.session.pause()
+    
+    
+    // Front Camera
+    func frontCameraInit() {
+        controlButton()
+    }
+    
+    func frontCameraConfiguration() {
+        let configuration = ARFaceTrackingConfiguration()
+        sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
     }
     
     
@@ -67,14 +87,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         var y = Float(1)
         var z = Float(1)
         
-        if (UIDevice().model == "iPhone")
-        {
+        if (UIDevice().model == "iPhone") {
             x = 0.006
             y = -0.028
             z = -0.05
-        }
-        else if (UIDevice().model == "iPad")
-        {
+        } else if (UIDevice().model == "iPad") {
             x = -0.007
             y = -0.023
             z = -0.05
@@ -90,8 +107,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         return buttons
     }
         
-    @IBAction func handleTap(sender: UITapGestureRecognizer)
-    {
+    @IBAction func handleTap(sender: UITapGestureRecognizer) {
         let touchLocation: CGPoint = sender.location(in: sender.view)
 
         let screenBounds = UIScreen.main.bounds
@@ -102,15 +118,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         var h1 = CGFloat(1)
         var h2 = CGFloat(1)
                 
-        if (UIDevice().model == "iPhone")
-        {
+        if (UIDevice().model == "iPhone") {
             w1 = CGFloat(screenWidth / 6.5 * 0.2)
             w2 = CGFloat(screenWidth / 6.5 * 1.21)
             h1 = CGFloat(screenHeight / 14 * 12.1)
             h2 = CGFloat(screenHeight / 14 * 1.21)
-        }
-        else if (UIDevice().model == "iPad")
-        {
+        } else if (UIDevice().model == "iPad") {
             w1 = CGFloat(screenWidth / 14.7 * 0.85)
             w2 = CGFloat(screenWidth / 14.7 * 2.6)
             h1 = CGFloat(screenHeight / 19.7 * 17.3)
@@ -141,11 +154,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         }
     }
     
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode?
-    {
+    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
         let node = SCNNode()
-        if let imageAnchor = anchor as? ARImageAnchor
-        {
+        if let imageAnchor = anchor as? ARImageAnchor {
             let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
             plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
             let node_plane = SCNNode(geometry: plane)
@@ -162,8 +173,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     
     
     
-    // Camera Button
-    func cameraButton() {
+    // Control Button
+    func controlButton() {
         var circlePath = UIBezierPath()
         if (UIDevice().model == "iPhone") {
             circlePath = UIBezierPath(arcCenter: CGPoint(x: 207, y: 745), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
@@ -190,13 +201,19 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         button.tag = 123321
         
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
-        tapGesture.delegate = self
-        button.addGestureRecognizer(tapGesture)
+        let photoGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
+        photoGesture.delegate = self
+        photoGesture.numberOfTapsRequired = 1
+        button.addGestureRecognizer(photoGesture)
         
-        let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordButtonTapped))
-        longGesture.delegate = self
-        button.addGestureRecognizer(longGesture)
+        let changeCameraGesture = UITapGestureRecognizer(target: self, action: #selector (changeCamera))
+        changeCameraGesture.delegate = self
+        changeCameraGesture.numberOfTapsRequired = 2
+        button.addGestureRecognizer(changeCameraGesture)
+        
+        let videoGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordButtonTapped))
+        videoGesture.delegate = self
+        button.addGestureRecognizer(videoGesture)
         
         
         self.view.layer.addSublayer(shapeLayer)
@@ -230,7 +247,38 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         previewController.dismiss(animated: true, completion: nil)
     }
     
+    @IBAction func changeCamera(sender: UITapGestureRecognizer) {
+        if ((sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) == true) {
+            removeAll()
+            frontCameraInit()
+            frontCameraConfiguration()
+        } else {
+            removeAll()
+            backCameraInit()
+            backCameraConfiguration()
+        }
+    }
+    
+    func removeAll() {
+        sceneView.session.pause()
+        sceneView.scene.rootNode.enumerateChildNodes { (node, stop) in
+            if (node != sceneView.pointOfView) {
+                node.removeFromParentNode()
+            }
+        }
+        sceneView.gestureRecognizers?.forEach(sceneView.removeGestureRecognizer)
+        self.view.subviews.forEach({ $0.removeFromSuperview() })
+        self.view.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+    }
+    
+    
+    
+    // Util
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
     return true
+    }
+    
+    func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
+        return .landscape
     }
 }
