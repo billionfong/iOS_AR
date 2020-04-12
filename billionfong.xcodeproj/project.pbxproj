@@ -7,23 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E964F7FF21131EDB002214EF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964F7FE21131EDB002214EF /* AppDelegate.swift */; };
 		E964F80121131EDB002214EF /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = E964F80021131EDB002214EF /* art.scnassets */; };
-		E964F80321131EDB002214EF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964F80221131EDB002214EF /* ViewController.swift */; };
 		E964F80621131EDB002214EF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E964F80421131EDB002214EF /* Main.storyboard */; };
 		E964F80821131EDD002214EF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E964F80721131EDD002214EF /* Assets.xcassets */; };
 		E964F80B21131EDD002214EF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E964F80921131EDD002214EF /* LaunchScreen.storyboard */; };
+		E9871C9024436A3C00E03D2F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964F80221131EDB002214EF /* ViewController.swift */; };
+		E9871C9424436B0600E03D2F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9871C9324436B0600E03D2F /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		E964F7FB21131EDB002214EF /* billionfong.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = billionfong.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E964F7FE21131EDB002214EF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E964F80021131EDB002214EF /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
 		E964F80221131EDB002214EF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		E964F80521131EDB002214EF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		E964F80721131EDD002214EF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E964F80A21131EDD002214EF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E964F80C21131EDD002214EF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E9871C9324436B0600E03D2F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,8 +56,8 @@
 		E964F7FD21131EDB002214EF /* billionfong */ = {
 			isa = PBXGroup;
 			children = (
-				E964F7FE21131EDB002214EF /* AppDelegate.swift */,
 				E964F80021131EDB002214EF /* art.scnassets */,
+				E9871C9324436B0600E03D2F /* AppDelegate.swift */,
 				E964F80221131EDB002214EF /* ViewController.swift */,
 				E964F80421131EDB002214EF /* Main.storyboard */,
 				E964F80721131EDD002214EF /* Assets.xcassets */,
@@ -140,8 +140,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E964F80321131EDB002214EF /* ViewController.swift in Sources */,
-				E964F7FF21131EDB002214EF /* AppDelegate.swift in Sources */,
+				E9871C9424436B0600E03D2F /* AppDelegate.swift in Sources */,
+				E9871C9024436A3C00E03D2F /* ViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,6 +222,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CODE_SIGN_FLAGS = "";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -276,6 +277,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CODE_SIGN_FLAGS = "";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";

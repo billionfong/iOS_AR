@@ -155,20 +155,43 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     }
     
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
-        if let imageAnchor = anchor as? ARImageAnchor {
-            let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
-            plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
-            let node_plane = SCNNode(geometry: plane)
-            node_plane.eulerAngles.x = -.pi / 2
-            let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
+        if ((sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) == true) {
+            let node = SCNNode()
+            if let imageAnchor = anchor as? ARImageAnchor {
+                let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
+                plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
+                let node_plane = SCNNode(geometry: plane)
+                node_plane.eulerAngles.x = -.pi / 2
+                let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
 
-            let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
-            node_init.position = SCNVector3Make(0, 0, 0.005)
-            node_plane.addChildNode(node_init)
-            node.addChildNode(node_plane)
+                let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
+                node_init.position = SCNVector3Make(0, 0, 0.005)
+                node_plane.addChildNode(node_init)
+                node.addChildNode(node_plane)
+            }
+            return node
         }
-        return node
+        else
+        {
+            var contentNode: SCNNode?
+            var occlusionNode: SCNNode!
+            guard let sceneView = renderer as? ARSCNView, anchor is ARFaceAnchor else { return nil }
+            
+            let faceGeometry = ARSCNFaceGeometry(device: sceneView.device!, fillMesh: true)!
+            faceGeometry.firstMaterial!.colorBufferWriteMask = []
+            occlusionNode = SCNNode(geometry: faceGeometry)
+            occlusionNode.renderingOrder = -1
+            
+            let scene_buttons = SCNScene(named: "art.scnassets/ARHead.scn")!
+            let scene_node = scene_buttons.rootNode.childNode(withName: "frontBlank", recursively: false)!
+
+            contentNode = SCNNode()
+            contentNode!.addChildNode(occlusionNode)
+            contentNode!.addChildNode(scene_node)
+            
+            return contentNode
+        }
+        
     }
     
     
@@ -200,16 +223,16 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         button.backgroundColor = .white
         button.tag = 123321
         
-        
-        let photoGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
-        photoGesture.delegate = self
-        photoGesture.numberOfTapsRequired = 1
-        button.addGestureRecognizer(photoGesture)
-        
         let changeCameraGesture = UITapGestureRecognizer(target: self, action: #selector (changeCamera))
         changeCameraGesture.delegate = self
         changeCameraGesture.numberOfTapsRequired = 2
         button.addGestureRecognizer(changeCameraGesture)
+        
+        let photoGesture = UITapGestureRecognizer(target: self, action: #selector (screenshot))
+        photoGesture.delegate = self
+        photoGesture.numberOfTapsRequired = 1
+        photoGesture.require(toFail: changeCameraGesture)
+        button.addGestureRecognizer(photoGesture)
         
         let videoGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordButtonTapped))
         videoGesture.delegate = self
