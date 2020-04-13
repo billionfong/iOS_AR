@@ -34,13 +34,52 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         sceneView.session.pause()
     }
     
+    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
+        if ((sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) == true) {
+            let node = SCNNode()
+            if let imageAnchor = anchor as? ARImageAnchor {
+                let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
+                plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
+                let node_plane = SCNNode(geometry: plane)
+                node_plane.eulerAngles.x = -.pi / 2
+                let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
+
+                let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
+                node_init.position = SCNVector3Make(0, 0, 0.005)
+                node_plane.addChildNode(node_init)
+                node.addChildNode(node_plane)
+            }
+            return node
+        }
+        else
+        {
+            var contentNode: SCNNode?
+            var occlusionNode: SCNNode!
+            guard let sceneView = renderer as? ARSCNView, anchor is ARFaceAnchor else { return nil }
+            
+            let faceGeometry = ARSCNFaceGeometry(device: sceneView.device!, fillMesh: true)!
+            faceGeometry.firstMaterial!.colorBufferWriteMask = []
+            occlusionNode = SCNNode(geometry: faceGeometry)
+            occlusionNode.renderingOrder = -1
+
+            let scene_buttons = SCNScene(named: "art.scnassets/ARHead.scn")!
+            let scene_node = scene_buttons.rootNode.childNode(withName: "frontBlank", recursively: false)!
+            scene_node.runAction(SCNAction.rotateTo(x: 3600,y: 0,z: 0,duration: 1800))
+            
+            contentNode = SCNNode()
+            contentNode!.addChildNode(occlusionNode)
+            contentNode!.addChildNode(scene_node)
+            return contentNode
+        }
+    }
     
     
-    // Back Camera
+    
+    // Back Camera Basics
     func backCameraInit() {
         sceneView.delegate = self
         // Bottom 5 Buttons
-        for bottomButton in createBottomButtons() {
+        for bottomButton in createBackBottomButtons() {
             sceneView.pointOfView?.addChildNode(bottomButton)
         }
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
@@ -61,22 +100,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     }
     
     
-    
-    // Front Camera
-    func frontCameraInit() {
-        controlButton()
-    }
-    
-    func frontCameraConfiguration() {
-        let configuration = ARFaceTrackingConfiguration()
-        sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
-    }
-    
-    
-    
-    // AR Functions
-    func createBottomButtons() -> [SCNNode] {
-        let scene_buttons = SCNScene(named: "art.scnassets/buttons.scn")!
+
+    // Back Camera Functions
+    func createBackBottomButtons() -> [SCNNode] {
+        let scene_buttons = SCNScene(named: "art.scnassets/backButtons.scn")!
         let node_L_Y90_Y1 = scene_buttons.rootNode.childNode(withName: "L_Y90_Y1", recursively: false)!
         let node_LM_X90Z90_Z1 = scene_buttons.rootNode.childNode(withName: "LM_X90Z90_Z1", recursively: false)!
         let node_M_X90Z90_Y1 = scene_buttons.rootNode.childNode(withName: "M_X90Z90_Y1", recursively: false)!
@@ -154,44 +181,49 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         }
     }
     
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        if ((sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) == true) {
-            let node = SCNNode()
-            if let imageAnchor = anchor as? ARImageAnchor {
-                let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
-                plane.firstMaterial?.diffuse.contents = UIColor(white: 0, alpha: 0)
-                let node_plane = SCNNode(geometry: plane)
-                node_plane.eulerAngles.x = -.pi / 2
-                let scene_ARHead = SCNScene(named: "art.scnassets/ARHead.scn")!
+    
 
-                let node_init = scene_ARHead.rootNode.childNode(withName: "init", recursively: false)!
-                node_init.position = SCNVector3Make(0, 0, 0.005)
-                node_plane.addChildNode(node_init)
-                node.addChildNode(node_plane)
-            }
-            return node
-        }
-        else
-        {
-            var contentNode: SCNNode?
-            var occlusionNode: SCNNode!
-            guard let sceneView = renderer as? ARSCNView, anchor is ARFaceAnchor else { return nil }
-            
-            let faceGeometry = ARSCNFaceGeometry(device: sceneView.device!, fillMesh: true)!
-            faceGeometry.firstMaterial!.colorBufferWriteMask = []
-            occlusionNode = SCNNode(geometry: faceGeometry)
-            occlusionNode.renderingOrder = -1
-            
-            let scene_buttons = SCNScene(named: "art.scnassets/ARHead.scn")!
-            let scene_node = scene_buttons.rootNode.childNode(withName: "frontBlank", recursively: false)!
-
-            contentNode = SCNNode()
-            contentNode!.addChildNode(occlusionNode)
-            contentNode!.addChildNode(scene_node)
-            
-            return contentNode
+    // Front Camera
+    func frontCameraInit() {
+        sceneView.delegate = self
+        // Bottom 5 Buttons
+        for bottomButton in createFrontBottomButtons() {
+            sceneView.pointOfView?.addChildNode(bottomButton)
         }
         
+        // Control Button
+        controlButton()
+    }
+    
+    func frontCameraConfiguration() {
+        let configuration = ARFaceTrackingConfiguration()
+        sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+    }
+    
+    func createFrontBottomButtons() -> [SCNNode] {
+        let scene_buttons = SCNScene(named: "art.scnassets/frontButtons.scn")!
+        let L = scene_buttons.rootNode.childNode(withName: "L", recursively: false)!
+        let R = scene_buttons.rootNode.childNode(withName: "R", recursively: false)!
+        
+        var x = Float(1)
+        var y = Float(1)
+        var z = Float(1)
+        
+        if (UIDevice().model == "iPhone") {
+            x = 0.008
+            y = -0.028
+            z = -0.05
+        } else if (UIDevice().model == "iPad") {
+            x = -0.007
+            y = -0.023
+            z = -0.05
+        }
+        
+        L.position = SCNVector3Make(-1 * x, y, z)
+        R.position = SCNVector3Make(x, y, z)
+        
+        let buttons = [L, R]
+        return buttons
     }
     
     
@@ -199,12 +231,19 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     // Control Button
     func controlButton() {
         var circlePath = UIBezierPath()
+        
+        var moveDown = 0
+        if ((sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) == true) {
+            moveDown = 45
+        }
+        
         if (UIDevice().model == "iPhone") {
-            circlePath = UIBezierPath(arcCenter: CGPoint(x: 207, y: 745), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
+            circlePath = UIBezierPath(arcCenter: CGPoint(x: 207, y: 745 + moveDown), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
         }
         else if (UIDevice().model == "iPad") {
             circlePath = UIBezierPath(arcCenter: CGPoint(x: 384, y: 855), radius: CGFloat(30), startAngle: CGFloat(0), endAngle: CGFloat(Double.pi * 2), clockwise: true)
         }
+        
         let shapeLayer = CAShapeLayer()
         shapeLayer.path = circlePath.cgPath
         shapeLayer.fillColor = nil
@@ -214,7 +253,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         
         var button = UIButton()
         if (UIDevice().model == "iPhone") {
-            button = UIButton(frame: CGRect(x: 182, y: 720, width: 50, height: 50))
+            button = UIButton(frame: CGRect(x: 182, y: 720 + moveDown, width: 50, height: 50))
         }
         else if (UIDevice().model == "iPad") {
             button = UIButton(frame: CGRect(x: 359, y: 830, width: 50, height: 50))
@@ -271,7 +310,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     }
     
     @IBAction func changeCamera(sender: UITapGestureRecognizer) {
-        if ((sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) == true) {
+        if ((sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) == true && ARFaceTrackingConfiguration.isSupported) {
             removeAll()
             frontCameraInit()
             frontCameraConfiguration()
@@ -301,7 +340,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     return true
     }
     
-    func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .landscape
     }
 }
