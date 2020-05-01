@@ -43,6 +43,14 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
              let rotate = (Float(second%2) + Float(nanosecond) * 10e-10) * Float.pi * -1
              faceGeometry?.setValue(sin(Float(rotate)), forKey: "sin")
              faceGeometry?.setValue(cos(Float(rotate)), forKey: "cos")
+             DispatchQueue.main.async {
+                let sceneView = self.sceneView
+                let frame = sceneView?.session.currentFrame!
+                let affineTransform = frame?.displayTransform(for: .portrait, viewportSize: (sceneView?.bounds.size)!)
+                let transform = SCNMatrix4(affineTransform!)
+                let invertTransform = SCNMatrix4Invert(transform)
+                faceGeometry?.setValue(invertTransform, forKey: "displayTransform")
+             }
          }
     }
     
@@ -82,11 +90,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
             
             return contentNode
         } else {
-            guard let sceneView = renderer as? ARSCNView,
-                let frame = sceneView.session.currentFrame,
-                anchor is ARFaceAnchor
-                else { return nil }
-            
             
             let faceGeometry = ARSCNFaceGeometry(device: sceneView.device!, fillMesh: true)!
             let material = faceGeometry.firstMaterial!
@@ -94,21 +97,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
             material.lightingModel = .constant
             guard let shaderURL = Bundle.main.url(forResource: "head", withExtension: "shader"),
                 let modifier = try? String(contentsOf: shaderURL)
-                else { fatalError("Can't load shader modifier from bundle.") }
+                else { fatalError("") }
             faceGeometry.shaderModifiers = [ .geometry: modifier]
-            let affineTransform = frame.displayTransform(for: .portrait, viewportSize: sceneView.bounds.size)
-            let transform = SCNMatrix4(affineTransform)
-            let invertTransform = SCNMatrix4Invert(transform)
-            faceGeometry.setValue(invertTransform, forKey: "displayTransform")
-            
 
-            let nanosecond = Calendar.current.component(.nanosecond, from: Date())
-            let second = Calendar.current.component(.second, from: Date())
-            let rotate = (Float(second%2) + Float(nanosecond) * 10e-10) * Float.pi * -1
-            faceGeometry.setValue(sin(Float(rotate)), forKey: "sin")
-            faceGeometry.setValue(cos(Float(rotate)), forKey: "cos")
             
-            
+                        
             let scene_buttons = SCNScene(named: "art.scnassets/ARHead.scn")!
             let scene_node = scene_buttons.rootNode.childNode(withName: "frontBlank", recursively: false)!
             scene_node.runAction(SCNAction.rotateTo(x: CGFloat(1800 * CGFloat.pi), y: 0,z: 0,duration: 1800))
@@ -157,9 +150,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let node_RM_X90Z90_X1 = scene_buttons.rootNode.childNode(withName: "RM_X90Z90_X1", recursively: false)!
         let node_R_Y90_Z1 = scene_buttons.rootNode.childNode(withName: "R_Y90_Z1", recursively: false)!
         
-        var x = Float(1)
-        var y = Float(1)
-        var z = Float(1)
+        var x = Float()
+        var y = Float()
+        var z = Float()
         
         if (UIDevice().model == "iPhone") {
             x = 0.006
@@ -187,10 +180,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let screenBounds = UIScreen.main.bounds
         let screenWidth = screenBounds.width
         let screenHeight = screenBounds.height
-        var w1 = CGFloat(1)
-        var w2 = CGFloat(1)
-        var h1 = CGFloat(1)
-        var h2 = CGFloat(1)
+        var w1 = CGFloat()
+        var w2 = CGFloat()
+        var h1 = CGFloat()
+        var h2 = CGFloat()
                 
         if (UIDevice().model == "iPhone") {
             w1 = CGFloat(screenWidth / 6.5 * 0.2)
@@ -257,9 +250,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let R = scene_buttons.rootNode.childNode(withName: "R", recursively: false)!
         let Face = scene_buttons.rootNode.childNode(withName: "Face", recursively: false)!
         
-        var x = Float(1)
-        var y = Float(1)
-        var z = Float(1)
+        var x = Float()
+        var y = Float()
+        var z = Float()
         
         if (UIDevice().model == "iPhone") {
             x = 0.008
