@@ -1,7 +1,7 @@
 //
 //  ViewController.swift
 //  billionfong
-//  Device: iPhone 11, iPad Air 2
+//  Device: iPhone 11, iPad Air 2 (only back camera)
 //
 //  Created by Billionfong on 2/8/2018.
 //  Copyright © 2018 Billionfong. All rights reserved.
@@ -12,11 +12,12 @@ import SceneKit
 import ARKit
 import ReplayKit
 
+
 class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControllerDelegate, UIGestureRecognizerDelegate {
     
     @IBOutlet var sceneView: ARSCNView!
     
-    
+    var frontHead = true;
     
     // Basic Functions
     override func viewDidLoad() {
@@ -32,6 +33,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         sceneView.session.pause()
+    }
+    
+    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+         if (!frontHead && (sceneView.session.configuration?.isKind(of: ARImageTrackingConfiguration.self)) != true) {
+             let faceGeometry = node.geometry
+             let nanosecond = Calendar.current.component(.nanosecond, from: Date())
+             let second = Calendar.current.component(.second, from: Date())
+             let rotate = (Float(second%2) + Float(nanosecond) * 10e-10) * Float.pi * -1
+             faceGeometry?.setValue(sin(Float(rotate)), forKey: "sin")
+             faceGeometry?.setValue(cos(Float(rotate)), forKey: "cos")
+         }
     }
     
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
@@ -50,9 +62,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
                 node.addChildNode(node_plane)
             }
             return node
-        }
-        else
-        {
+        } else if (frontHead) {
             var contentNode: SCNNode?
             var occlusionNode: SCNNode!
             guard let sceneView = renderer as? ARSCNView, anchor is ARFaceAnchor else { return nil }
@@ -64,10 +74,47 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
 
             let scene_buttons = SCNScene(named: "art.scnassets/ARHead.scn")!
             let scene_node = scene_buttons.rootNode.childNode(withName: "frontBlank", recursively: false)!
-            scene_node.runAction(SCNAction.rotateTo(x: 3600,y: 0,z: 0,duration: 1800))
-            
+            scene_node.runAction(SCNAction.rotateTo(x: CGFloat(1800 * CGFloat.pi), y: 0,z: 0,duration: 1800))
+
             contentNode = SCNNode()
             contentNode!.addChildNode(occlusionNode)
+            contentNode!.addChildNode(scene_node)
+            
+            return contentNode
+        } else {
+            guard let sceneView = renderer as? ARSCNView,
+                let frame = sceneView.session.currentFrame,
+                anchor is ARFaceAnchor
+                else { return nil }
+            
+            
+            let faceGeometry = ARSCNFaceGeometry(device: sceneView.device!, fillMesh: true)!
+            let material = faceGeometry.firstMaterial!
+            material.diffuse.contents = sceneView.scene.background.contents
+            material.lightingModel = .constant
+            guard let shaderURL = Bundle.main.url(forResource: "head", withExtension: "shader"),
+                let modifier = try? String(contentsOf: shaderURL)
+                else { fatalError("Can't load shader modifier from bundle.") }
+            faceGeometry.shaderModifiers = [ .geometry: modifier]
+            let affineTransform = frame.displayTransform(for: .portrait, viewportSize: sceneView.bounds.size)
+            let transform = SCNMatrix4(affineTransform)
+            let invertTransform = SCNMatrix4Invert(transform)
+            faceGeometry.setValue(invertTransform, forKey: "displayTransform")
+            
+
+            let nanosecond = Calendar.current.component(.nanosecond, from: Date())
+            let second = Calendar.current.component(.second, from: Date())
+            let rotate = (Float(second%2) + Float(nanosecond) * 10e-10) * Float.pi * -1
+            faceGeometry.setValue(sin(Float(rotate)), forKey: "sin")
+            faceGeometry.setValue(cos(Float(rotate)), forKey: "cos")
+            
+            
+            let scene_buttons = SCNScene(named: "art.scnassets/ARHead.scn")!
+            let scene_node = scene_buttons.rootNode.childNode(withName: "frontBlank", recursively: false)!
+            scene_node.runAction(SCNAction.rotateTo(x: CGFloat(1800 * CGFloat.pi), y: 0,z: 0,duration: 1800))
+            
+            var contentNode: SCNNode?
+            contentNode = SCNNode(geometry: faceGeometry)
             contentNode!.addChildNode(scene_node)
             return contentNode
         }
@@ -82,7 +129,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         for bottomButton in createBackBottomButtons() {
             sceneView.pointOfView?.addChildNode(bottomButton)
         }
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(backHandleTap))
         tap.delegate = self
         sceneView.addGestureRecognizer(tap)
         
@@ -134,7 +181,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         return buttons
     }
         
-    @IBAction func handleTap(sender: UITapGestureRecognizer) {
+    @IBAction func backHandleTap(sender: UITapGestureRecognizer) {
         let touchLocation: CGPoint = sender.location(in: sender.view)
 
         let screenBounds = UIScreen.main.bounds
@@ -191,6 +238,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
             sceneView.pointOfView?.addChildNode(bottomButton)
         }
         
+        let tap = UITapGestureRecognizer(target: self, action: #selector(frontHandleTap))
+        tap.delegate = self
+        sceneView.addGestureRecognizer(tap)
+        
         // Control Button
         controlButton()
     }
@@ -213,10 +264,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
             x = 0.008
             y = -0.028
             z = -0.05
-        } else if (UIDevice().model == "iPad") {
-            x = -0.007
-            y = -0.023
-            z = -0.05
         }
         
         L.position = SCNVector3Make(-1 * x, y, z)
@@ -224,6 +271,28 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         
         let buttons = [L, R]
         return buttons
+    }
+    
+    @IBAction func frontHandleTap(sender: UITapGestureRecognizer) {
+        let touchLocation: CGPoint = sender.location(in: sender.view)
+
+        let screenBounds = UIScreen.main.bounds
+        let screenWidth = screenBounds.width
+        let screenHeight = screenBounds.height
+        let h1 = CGFloat(screenHeight / 14 * 12.1)
+        let w1 = CGFloat(screenWidth / 6.5 * 1)
+        let size = CGFloat(screenWidth / 6.5 * 1.5)
+        
+        if ((w1+size)>touchLocation.x && touchLocation.x>(w1) && (h1+size)>touchLocation.y && touchLocation.y>(h1)) {
+            frontHead = true
+            let configuration = ARFaceTrackingConfiguration()
+            sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+        }
+        else if ((4*w1+size)>touchLocation.x && touchLocation.x>(4*w1) && (h1+size)>touchLocation.y && touchLocation.y>(h1)) {
+            frontHead = false
+            let configuration = ARFaceTrackingConfiguration()
+            sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+        }
     }
     
     
@@ -337,10 +406,24 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
     
     // Util
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-    return true
+        return true
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .landscape
+    }
+}
+
+extension SCNMatrix4 {
+    init(_ affineTransform: CGAffineTransform) {
+        self.init()
+        m11 = Float(affineTransform.a)
+        m12 = Float(affineTransform.b)
+        m21 = Float(affineTransform.c)
+        m22 = Float(affineTransform.d)
+        m41 = Float(affineTransform.tx)
+        m42 = Float(affineTransform.ty)
+        m33 = 1
+        m44 = 1
     }
 }
