@@ -255,6 +255,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         let scene_buttons = SCNScene(named: "art.scnassets/frontButtons.scn")!
         let L = scene_buttons.rootNode.childNode(withName: "L", recursively: false)!
         let R = scene_buttons.rootNode.childNode(withName: "R", recursively: false)!
+        let Face = scene_buttons.rootNode.childNode(withName: "Face", recursively: false)!
         
         var x = Float(1)
         var y = Float(1)
@@ -267,9 +268,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, RPPreviewViewControll
         }
         
         L.position = SCNVector3Make(-1 * x, y, z)
+        L.runAction(SCNAction.rotateTo(x: CGFloat(1800 * CGFloat.pi), y: 0,z: 0,duration: 1800))
+        Face.position = SCNVector3Make(-1 * x, y, z+0.00005)
         R.position = SCNVector3Make(x, y, z)
+        R.runAction(SCNAction.rotateTo(x: CGFloat(1800 * CGFloat.pi), y: 0,z: 0,duration: 1800))
         
-        let buttons = [L, R]
+        let buttons = [L, R, Face]
         return buttons
     }
     
