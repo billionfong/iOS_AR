@@ -35,6 +35,17 @@ Coins can be chosen:
 
 .. image:: https://github.com/billionfong/iOS_AR/blob/master/README.assets/coins.gif
 
-Game play (when clicking different coins):
+Front Camera
+***************
+Game play
+------------------
+When a face is detected, an AR rotating circle will be placed upon your face. 
 
-.. image:: https://github.com/billionfong/iOS_AR/blob/master/README.assets/gameplay.gif
+Rotation - Without Face
+------------------------
+Sample effect:
+
+Rotation - With Face
+------------------------
+Sample effect:
+
