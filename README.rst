@@ -10,20 +10,22 @@ The package aims at creating an AR flipping coin on my products.
 
 Products
 ***************
-I am the owner of numerous products, with my face printed on them.
+I am the owner of 30+ products with my face printed on them.
 
 They are marvelous, fabulous and simply amazing.
 
-Please refer to www.billionfong.com for the list of my products.
+Please refer to www.billionfong.com for the list of products.
 
-AR flipping coin
+Rear Camera
 ***************
+AR flipping coin
+------------------
 A coin with my face is created to be projected in the AR.
 
 The app allows the coin to flip around different axes and different orientations.
 
 Game play
-***************
+------------------
 Image to be scanned:
 
 .. image:: https://github.com/billionfong/iOS_AR/blob/master/README.assets/bare_head.png
