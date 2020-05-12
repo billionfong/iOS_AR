@@ -35,6 +35,12 @@ Coins can be chosen:
 
 .. image:: https://github.com/billionfong/iOS_AR/blob/master/README.assets/coins.gif
 
+
+Game play (when clicking different coins):
+
+.. image:: https://github.com/billionfong/iOS_AR/blob/master/README.assets/coins.gif
+
+
 Front Camera
 ***************
 Game play
