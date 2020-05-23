@@ -45,13 +45,16 @@ Front Camera
 ***************
 Game play
 ------------------
-When a face is detected, an AR rotating circle will be placed upon your face. 
+When a face is detected, an AR rotating circle will be placed upon your face.
 
 Rotation - Without Face
 ------------------------
 Sample effect:
 
+.. image:: https://github.com/billionfong/iOS_AR/blob/master/README.assets/gameplay_L.gif
+
 Rotation - With Face
 ------------------------
 Sample effect:
 
+.. image:: https://github.com/billionfong/iOS_AR/blob/master/README.assets/gameplay_R.gif
